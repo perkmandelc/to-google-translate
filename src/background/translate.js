@@ -62,28 +62,6 @@ new Config(true, items => {
                 contexts: ['selection']
             });
         }
-        // create Listen context menu
-        if (enableTTS) {
-            chrome.contextMenus.create({
-                id: 'tts',
-                title: chrome.i18n.getMessage('contextMenuTitleTextToSpeech', ttsLang),
-                contexts: ['selection']
-            });
-        }
-        // create Translate Page context menu
-        if (enableTP) {
-            chrome.contextMenus.create({
-                id: 'translatePage',
-                title: chrome.i18n.getMessage('contextMenuTitleTranslatePage', [tpPageLang, tpUserLang]),
-                contexts: ['all']
-            });
-
-            chrome.contextMenus.create({
-                id: 'translatePageLink',
-                title: chrome.i18n.getMessage('contextMenuTitleTranslatePageLink', [tpPageLang, tpUserLang]),
-                contexts: ['link']
-            });
-        }
     });
 });
 
@@ -144,14 +122,29 @@ chrome.runtime.onInstalled.addListener(function (info) {
 });
 
 function openTranslate(url, tab, fullscreen = false) {
-    if (Config.config.openMode === "modal") {
-        chrome.tabs.sendMessage(tab.id, {
-            url: url,
-            fullscreen: fullscreen
-        });
-    } else {
-        tabCreateWithOpenerTabId(url, tab);
-    }
+    chrome.windows.getCurrent(function(win) {
+	chrome.tabs.query({active: true}, function (tabs) {
+	    let otherWindowExists = false;
+	    
+	    for (let otherTab of tabs) {
+		if (otherTab.windowId !== win.id) {
+		    chrome.tabs.sendMessage(otherTab.id, {
+			url: url,
+			fullscreen: fullscreen
+		    });
+		    otherWindowExists = true;
+		    break;
+		}
+	    }
+
+	    if (!otherWindowExists) {
+		chrome.tabs.sendMessage(tab.id, {
+		    url: url,
+		    fullscreen: fullscreen
+		});
+	    }
+	});
+    });
 }
 
 // Create a tab with openerTabId if version of Firefox is above 57
