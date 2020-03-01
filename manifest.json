@@ -34,8 +34,7 @@
     "content_scripts": [
         {
             "matches": [
-                "http://*/*",
-                "https://*/*"
+		"<all_urls>"
             ],
             "js": [
                 "src/config.js",
@@ -80,8 +79,7 @@
         }
     },
     "permissions": [
-        "http://*/*",
-        "https://*/*",
+	"<all_urls>",
         "contextMenus",
         "storage",
         "webRequest",
